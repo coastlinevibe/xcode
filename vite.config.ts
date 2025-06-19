@@ -7,4 +7,13 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  assetsInclude: ['**/*.png'],
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
+  server: {
+    port: 5173,
+  },
 });

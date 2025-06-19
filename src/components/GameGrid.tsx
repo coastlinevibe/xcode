@@ -1,157 +1,175 @@
-import React from 'react';
-import { Character, Enemy, Collectible, Obstacle, Position, SpriteAnimation } from '../types/game';
+import React, { useEffect, useState } from 'react';
 import { AnimatedCharacter } from './AnimatedCharacter';
 
-interface GameGridProps {
-  gridSize: { width: number; height: number };
-  character: Character;
-  enemies: Enemy[];
-  collectibles: Collectible[];
-  obstacles: Obstacle[];
-  exit: Position;
-  isRunning: boolean;
-  sprites?: Record<string, SpriteAnimation>;
-  currentAction?: 'idle' | 'walking' | 'attacking' | 'dead';
+interface GridPosition {
+  x: number;
+  y: number;
 }
 
+interface GameGridProps {
+  width: number;
+  height: number;
+  onExecutionComplete: () => void;
+  initialPosition?: GridPosition;
+}
+
+// Game state with grid coordinates
+const gameState = {
+  gridX: 5, // Start at position 5
+  gridY: 5, // Start at position 5
+  direction: 'down',
+  isMoving: false
+};
+
+const CELL_SIZE = 48; // Size of each grid cell in pixels
+const GRID_OFFSET_X = 100; // Offset from left
+const GRID_OFFSET_Y = 100; // Offset from top
+
+// Convert grid coordinates to pixel positions
+function gridToPixel(gridPos: GridPosition) {
+  return {
+    x: GRID_OFFSET_X + (gridPos.x * CELL_SIZE),
+    y: GRID_OFFSET_Y + (gridPos.y * CELL_SIZE)
+  };
+}
+
+// Define the movement functions
+function moveRight() {
+  console.log('Moving right');
+  gameState.direction = 'right';
+  gameState.gridX += 1;
+  gameState.isMoving = true;
+  setTimeout(() => { gameState.isMoving = false; }, 500);
+  return true;
+}
+
+function moveLeft() {
+  console.log('Moving left');
+  gameState.direction = 'left';
+  gameState.gridX -= 1;
+  gameState.isMoving = true;
+  setTimeout(() => { gameState.isMoving = false; }, 500);
+  return true;
+}
+
+function moveUp() {
+  console.log('Moving up');
+  gameState.direction = 'up';
+  gameState.gridY -= 1;
+  gameState.isMoving = true;
+  setTimeout(() => { gameState.isMoving = false; }, 500);
+  return true;
+}
+
+function moveDown() {
+  console.log('Moving down');
+  gameState.direction = 'down';
+  gameState.gridY += 1;
+  gameState.isMoving = true;
+  setTimeout(() => { gameState.isMoving = false; }, 500);
+  return true;
+}
+
+// Expose movement functions globally
+window.yourName = {
+  moveRight,
+  moveLeft,
+  moveUp,
+  moveDown
+};
+
 export const GameGrid: React.FC<GameGridProps> = ({
-  gridSize,
-  character,
-  enemies,
-  collectibles,
-  obstacles,
-  exit,
-  isRunning,
-  sprites = {},
-  currentAction = 'idle'
+  width,
+  height,
+  onExecutionComplete,
+  initialPosition = { x: 5, y: 5 }
 }) => {
-  const getCellContent = (x: number, y: number) => {
-    // Character
-    if (character.position.x === x && character.position.y === y) {
-      return (
-        <AnimatedCharacter
-          character={character}
-          isRunning={isRunning}
-          sprites={sprites}
-          currentAction={currentAction}
-        />
-      );
-    }
+  // Initialize game state with props
+  useEffect(() => {
+    gameState.gridX = initialPosition.x;
+    gameState.gridY = initialPosition.y;
+  }, [initialPosition]);
 
-    // Exit
-    if (exit.x === x && exit.y === y) {
-      const canExit = character.hasKey;
-      return (
-        <div className={`
-          absolute inset-1 rounded-lg shadow-lg flex items-center justify-center text-2xl
-          ${canExit 
-            ? 'bg-gradient-to-br from-green-400 to-green-600 animate-pulse' 
-            : 'bg-gradient-to-br from-gray-400 to-gray-600'
-          }
-        `}>
-          🚪
-        </div>
-      );
-    }
+  const [gridPosition, setGridPosition] = useState<GridPosition>({ x: gameState.gridX, y: gameState.gridY });
+  const [direction, setDirection] = useState<'up' | 'down' | 'left' | 'right'>(gameState.direction as any);
+  const [isMoving, setIsMoving] = useState(false);
 
-    // Enemies
-    const enemy = enemies.find(e => e.position.x === x && e.position.y === y && e.isAlive);
-    if (enemy) {
-      const enemyEmoji = enemy.type === 'orc' ? '👹' : enemy.type === 'skeleton' ? '💀' : '🐉';
-      const enemyColor = enemy.type === 'dragon' ? 'from-red-600 to-red-800' : 'from-orange-600 to-orange-800';
-      return (
-        <div className={`absolute inset-1 bg-gradient-to-br ${enemyColor} rounded-lg shadow-lg flex flex-col items-center justify-center text-lg transform transition-all duration-300 hover:scale-105`}>
-          <div className="text-xl animate-pulse">{enemyEmoji}</div>
-          <div className="w-full bg-black bg-opacity-30 rounded-full h-1 mt-1">
-            <div 
-              className="bg-red-500 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${(enemy.health / enemy.maxHealth) * 100}%` }}
-            />
-          </div>
-        </div>
-      );
-    }
+  // Update component when game state changes
+  useEffect(() => {
+    const updateInterval = setInterval(() => {
+      setGridPosition({ x: gameState.gridX, y: gameState.gridY });
+      setDirection(gameState.direction as any);
+      setIsMoving(gameState.isMoving);
+    }, 50);
 
-    // Obstacles
-    const obstacle = obstacles.find(obs => obs.position.x === x && obs.position.y === y);
-    if (obstacle) {
-      if (obstacle.type === 'wall') {
-        return (
-          <div className="absolute inset-0 bg-gradient-to-br from-stone-600 to-stone-800 border-2 border-stone-500 flex items-center justify-center text-stone-300">
-            🧱
-          </div>
-        );
-      } else {
-        const obstacleEmoji = obstacle.type === 'spike' ? '⚡' : obstacle.type === 'fire' ? '🔥' : '☠️';
-        const obstacleColor = obstacle.type === 'spike' ? 'from-yellow-500 to-orange-600' : 
-                             obstacle.type === 'fire' ? 'from-red-500 to-red-700' : 'from-purple-500 to-purple-700';
-        return (
-          <div className={`absolute inset-1 bg-gradient-to-br ${obstacleColor} rounded-lg shadow-lg flex items-center justify-center text-xl animate-pulse`}>
-            {obstacleEmoji}
-          </div>
-        );
-      }
-    }
+    return () => clearInterval(updateInterval);
+  }, []);
 
-    // Collectibles
-    const collectible = collectibles.find(item => item.position.x === x && item.position.y === y && !item.collected);
-    if (collectible) {
-      const itemEmoji = collectible.type === 'coin' ? '🪙' : 
-                       collectible.type === 'gem' ? '💎' : 
-                       collectible.type === 'heart' ? '❤️' : '🗝️';
-      const itemColor = collectible.type === 'coin' ? 'from-yellow-400 to-yellow-600' :
-                       collectible.type === 'gem' ? 'from-purple-400 to-purple-600' :
-                       collectible.type === 'heart' ? 'from-red-400 to-red-600' : 'from-amber-400 to-amber-600';
-      return (
-        <div className={`absolute inset-2 bg-gradient-to-br ${itemColor} rounded-full shadow-lg flex items-center justify-center text-lg animate-bounce transform transition-all duration-300 hover:scale-110`}>
-          {itemEmoji}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const renderGrid = () => {
-    const cells = [];
-    for (let y = 0; y < gridSize.height; y++) {
-      for (let x = 0; x < gridSize.width; x++) {
-        const isCharacterPath = character.position.x === x && character.position.y === y;
-        cells.push(
-          <div
-            key={`${x}-${y}`}
-            className={`
-              relative w-12 h-12 border border-slate-300 transition-all duration-500
-              ${isCharacterPath && isRunning 
-                ? 'bg-gradient-to-br from-yellow-200 to-yellow-300 shadow-lg' 
-                : 'bg-gradient-to-br from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300'
-              }
-            `}
-          >
-            {getCellContent(x, y)}
-          </div>
-        );
-      }
-    }
-    return cells;
-  };
+  // Convert grid position to pixel position
+  const pixelPosition = gridToPixel(gridPosition);
 
   return (
-    <div className="flex justify-center">
-      <div 
-        className={`
-          grid gap-1 p-6 rounded-2xl shadow-inner border-4 transition-all duration-500
-          ${isRunning 
-            ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300 shadow-2xl' 
-            : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
-          }
-        `}
-        style={{ 
-          gridTemplateColumns: `repeat(${gridSize.width}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize.height}, 1fr)`
+    <div 
+      style={{ 
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        minHeight: '600px',
+        backgroundColor: '#1a1b26',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        padding: '20px'
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: width * CELL_SIZE + (GRID_OFFSET_X * 2),
+          height: height * CELL_SIZE + (GRID_OFFSET_Y * 2),
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden'
         }}
       >
-        {renderGrid()}
+        {/* Grid overlay for debugging */}
+        <div style={{
+          position: 'absolute',
+          top: GRID_OFFSET_Y,
+          left: GRID_OFFSET_X,
+          width: width * CELL_SIZE,
+          height: height * CELL_SIZE,
+          display: 'grid',
+          gridTemplateColumns: `repeat(${width}, ${CELL_SIZE}px)`,
+          gridTemplateRows: `repeat(${height}, ${CELL_SIZE}px)`,
+          pointerEvents: 'none',
+          opacity: 0.1
+        }}>
+          {Array.from({ length: width * height }).map((_, i) => (
+            <div key={i} style={{ border: '1px solid black' }} />
+          ))}
+        </div>
+
+        {/* Character */}
+        <div
+          style={{
+            position: 'absolute',
+            left: `${pixelPosition.x}px`,
+            top: `${pixelPosition.y}px`,
+            width: `${CELL_SIZE}px`,
+            height: `${CELL_SIZE}px`,
+            transform: 'translate(0, 0)',
+            transition: 'all 0.5s ease-out',
+            zIndex: 1
+          }}
+        >
+          <AnimatedCharacter
+            direction={direction}
+            state={isMoving ? 'walk' : 'idle'}
+          />
+        </div>
       </div>
     </div>
   );

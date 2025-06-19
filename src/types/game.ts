@@ -54,13 +54,13 @@ export interface Obstacle {
 
 // New Construct 3-style sprite interfaces
 export interface SpriteAnimation {
-  id: string;
-  name: string; // e.g., "walk", "idle", "attack"
-  directions: {
-    down: SpriteDirection;    // Direction 0
-    left: SpriteDirection;    // Direction 1  
-    right: SpriteDirection;   // Direction 2
-    up: SpriteDirection;      // Direction 3
+  name: string;
+  frames: string[];
+  settings: {
+    speed: number;
+    loop: boolean;
+    pingPong: boolean;
+    reverse: boolean;
   };
 }
 
@@ -94,51 +94,63 @@ export interface SpriteSheet {
   frames: SpriteFrame[];
 }
 
+export enum TileType {
+  Empty = 0,
+  Wall = 1,
+  Floor = 2,
+  Crate = 3,
+  Exit = 4
+}
+
+export interface TileData {
+  type: TileType;
+  x: number;
+  y: number;
+  properties?: {
+    [key: string]: any;
+  };
+}
+
+export interface TileMap {
+  width: number;
+  height: number;
+  tileSize: number;
+  tiles: TileData[];
+  startPosition: {
+    x: number;
+    y: number;
+  };
+  exitPosition?: {
+    x: number;
+    y: number;
+  };
+}
+
 export interface Level {
-  id: number;
+  id: string;
   name: string;
-  description: string;
-  gridSize: { width: number; height: number };
-  character: Character;
-  enemies: Enemy[];
-  collectibles: Collectible[];
-  obstacles: Obstacle[];
-  exit: Position;
-  objective: string;
-  hints: string[];
-  starterCode: string;
-  solution?: string;
-  timeLimit?: number;
-  generators?: Position[];
-  specialEffects?: string[];
-  // Gauntlet-specific properties
-  floorType?: 'dungeon' | 'crystal' | 'logic' | 'tower';
-  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
-  bossLevel?: boolean;
-  treasureRoom?: boolean;
-  secretAreas?: Position[];
+  map: TileMap;
+  objectives: string[];
+  hints?: string[];
 }
 
 export interface GameState {
-  currentLevel: number;
-  character: Character;
-  enemies: Enemy[];
-  collectibles: Collectible[];
-  obstacles: Obstacle[];
-  exit: Position;
+  x: number;
+  y: number;
+  direction: 'up' | 'down' | 'left' | 'right';
   isRunning: boolean;
-  isComplete: boolean;
   gameOver: boolean;
   moves: number;
-  executionLog: string[];
-  score: number;
-  time: number;
-  food: number;
-  maxFood: number;
+  diamonds: number;
   keys: number;
-  potions: number;
-  activeEffects: string[];
-  generators?: Position[];
+  character: {
+    class: string;
+    position: {
+      x: number;
+      y: number;
+    };
+    direction: 'up' | 'down' | 'left' | 'right';
+  };
 }
 
 export interface CodeExecution {
@@ -177,4 +189,31 @@ export interface GauntletVoiceLine {
   text: string;
   trigger: string;
   played: boolean;
+}
+
+export interface Animation {
+  name: string;
+  frames: string[];
+  settings: {
+    speed: number;
+    loop: boolean;
+    pingPong: boolean;
+    reverse: boolean;
+  };
+}
+
+export interface AnimationFolder {
+  id: string;
+  name: string;
+  animations: number[]; // Array of animation indices
+  isOpen: boolean;
+}
+
+export interface Sprite {
+  id: string;
+  name: string;
+  animations: SpriteAnimation[];
+  folders: AnimationFolder[];
+  createdAt?: string;
+  updatedAt?: string;
 }

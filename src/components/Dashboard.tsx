@@ -24,9 +24,10 @@ import {
   User
 } from 'lucide-react';
 import { CrewMember } from '../data/story';
+import { CharacterAnimator } from './CharacterAnimator';
 
 interface DashboardProps {
-  onNavigate: (view: 'dashboard' | 'xcode-academy' | 'character-creator' | 'audio-manager' | 'asset-manager' | 'project-manager') => void;
+  onNavigate: (section: string) => void;
   currentProgress: number;
   selectedCrewMember: CrewMember | null;
 }
@@ -36,7 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   currentProgress,
   selectedCrewMember
 }) => {
-  const [activeSection, setActiveSection] = useState<'overview' | 'courses' | 'tools' | 'projects'>('overview');
+  const [activeSection, setActiveSection] = useState('overview');
 
   const progressPercentage = (currentProgress / 160) * 100;
   const gauntletUnlocked = currentProgress >= 40;
@@ -66,7 +67,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white">
         <div className="container mx-auto px-6 py-8">
@@ -228,7 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               )}
 
               <button
-                onClick={() => onNavigate('character-creator')}
+                onClick={() => onNavigate('character-animator')}
                 className="group bg-gradient-to-br from-green-600 to-teal-700 hover:from-green-700 hover:to-teal-800 text-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 <div className="flex items-center space-x-4 mb-4">
@@ -236,19 +237,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <User className="w-8 h-8" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold">Character Creator</h3>
-                    <p className="text-green-100">Design Your Hero</p>
+                    <h3 className="text-xl font-bold">Character Animator</h3>
+                    <p className="text-green-100">Design & Animate Heroes</p>
                   </div>
                 </div>
-                <div className="text-left">
-                  <div className="text-sm opacity-75 mb-2">Customize appearance & stats</div>
-                  <div className="flex items-center space-x-2">
-                    <Palette className="w-4 h-4" />
-                    <span className="text-sm">Visual character editor</span>
-                  </div>
+                <div className="text-left text-sm opacity-75 mb-4">
+                  Create characters and design their animations with our visual editor
                 </div>
-                <div className="flex items-center justify-between mt-4">
-                  <span className="text-sm">Create character</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Create & Animate</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
@@ -411,7 +408,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <button
-                onClick={() => onNavigate('character-creator')}
+                onClick={() => onNavigate('character-animator')}
                 className="group bg-gradient-to-br from-green-600 to-teal-700 hover:from-green-700 hover:to-teal-800 text-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
                 <div className="flex items-center space-x-4 mb-4">
@@ -419,15 +416,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <User className="w-8 h-8" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold">Character Creator</h3>
-                    <p className="text-green-100">Design Heroes</p>
+                    <h3 className="text-xl font-bold">Character Animator</h3>
+                    <p className="text-green-100">Design & Animate Heroes</p>
                   </div>
                 </div>
                 <div className="text-left text-sm opacity-75 mb-4">
-                  Visual character editor with stats, appearance, and abilities
+                  Create characters and design their animations with our visual editor
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Create & Customize</span>
+                  <span className="text-sm">Create & Animate</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
